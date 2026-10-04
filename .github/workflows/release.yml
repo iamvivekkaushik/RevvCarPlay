@@ -1,0 +1,116 @@
+name: Publish release
+
+# Pushing a tag such as v0.2.0 builds RevvCarPlay's release APK, signs it and publishes it as a
+# GitHub release. A tag with a suffix (v0.2.0-beta.1) is a pre-release.
+#
+# Revv only lets an app signed with its own certificate change RevvCarPlay's settings and read its
+# route guidance, so the release is signed with Revv's release keystore, from the same secrets the
+# Revv repository uses: REVV_KEYSTORE_BASE64, REVV_KEYSTORE_PASSWORD, REVV_KEY_ALIAS and
+# REVV_KEY_PASSWORD. The APK never carries a CarPlay identity; drivers import their own.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Build and publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Reject credential files in public source
+        run: python3 scripts/check_public_tree.py
+
+      - name: Version from the tag
+        id: version
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          if [[ ! "$TAG" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::$TAG isn't vMAJOR.MINOR.PATCH, e.g. v0.2.0 or v0.2.0-beta.1"
+            exit 1
+          fi
+          major=${BASH_REMATCH[1]} minor=${BASH_REMATCH[2]} patch=${BASH_REMATCH[3]}
+          # Codes grow with the version: v1.2.3 is 1002003.
+          echo "name=${TAG#v}" >> "$GITHUB_OUTPUT"
+          echo "code=$((major * 1000000 + minor * 1000 + patch))" >> "$GITHUB_OUTPUT"
+          if [ -n "${BASH_REMATCH[4]}" ]; then echo "prerelease=true" >> "$GITHUB_OUTPUT"; else echo "prerelease=false" >> "$GITHUB_OUTPUT"; fi
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools platforms;android-37.0 build-tools;36.0.0 ndk;28.2.13676358
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Restore the release keystore
+        env:
+          REVV_KEYSTORE_BASE64: ${{ secrets.REVV_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$REVV_KEYSTORE_BASE64" ]; then
+            echo "::error::Add Revv's REVV_KEYSTORE_BASE64, REVV_KEYSTORE_PASSWORD, REVV_KEY_ALIAS and REVV_KEY_PASSWORD secrets to sign releases."
+            exit 1
+          fi
+          echo "$REVV_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/release.jks"
+          echo "ANDROID_KEYSTORE_PATH=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
+
+      - name: Unit tests and the signed release APK
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.REVV_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.REVV_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.REVV_KEY_PASSWORD }}
+        run: >
+          ./gradlew :shared:testDebugUnitTest :common:testDebugUnitTest :mobile:assembleRelease
+          -Prevvcarplay.versionName=${{ steps.version.outputs.name }}
+          -Prevvcarplay.versionCode=${{ steps.version.outputs.code }}
+          --stacktrace
+
+      - name: Check and name the APK
+        id: apk
+        env:
+          VERSION: ${{ steps.version.outputs.name }}
+        run: |
+          built=mobile/build/outputs/apk/release/mobile-release.apk
+          apksigner="$ANDROID_HOME/build-tools/36.0.0/apksigner"
+          "$apksigner" verify --print-certs "$built"
+          # A CarPlay identity must never ship: the private key would be extractable from the APK.
+          if unzip -l "$built" | grep -Ei 'offline-mfi|\.(pk8|p7b|pem|p12|pfx|jks|keystore)$'; then
+            echo "::error::The release APK contains credential files."
+            exit 1
+          fi
+          named="$RUNNER_TEMP/revvcarplay-$VERSION.apk"
+          cp "$built" "$named"
+          (cd "$RUNNER_TEMP" && sha256sum "revvcarplay-$VERSION.apk" > "revvcarplay-$VERSION.apk.sha256")
+          echo "path=$named" >> "$GITHUB_OUTPUT"
+
+      - name: Publish the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+          VERSION: ${{ steps.version.outputs.name }}
+          PRERELEASE: ${{ steps.version.outputs.prerelease }}
+          APK: ${{ steps.apk.outputs.path }}
+        run: |
+          flags=()
+          if [ "$PRERELEASE" = "true" ]; then flags+=(--prerelease); fi
+          gh release create "$TAG" "$APK" "$APK.sha256" \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "RevvCarPlay $VERSION" \
+            --generate-notes \
+            "${flags[@]}"
+
+      - name: Remove the keystore
+        if: always()
+        run: rm -f "$RUNNER_TEMP/release.jks"

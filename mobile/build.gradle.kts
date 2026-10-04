@@ -27,8 +27,9 @@ android {
         applicationId = "com.vivekkaushik.revvcarplay"
         minSdk = 28
         targetSdk = 37
-        versionCode = 1
-        versionName = "0.1.0"
+        // The release workflow sets these from the pushed tag, e.g. v1.2.3 is 1.2.3 and 1002003.
+        versionCode = providers.gradleProperty("revvcarplay.versionCode").orNull?.toInt() ?: 1
+        versionName = providers.gradleProperty("revvcarplay.versionName").orNull ?: "0.1.0"
 
     }
 

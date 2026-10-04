@@ -25,7 +25,13 @@ class HotspotModeMigrationTest {
         assertEquals("test-password", AirPlayPersistence.loadManualHotspotPassphrase(context))
     }
 
-    @Test fun freshInstallUsesBuiltInHotspot() {
+    // Wi-Fi Direct needs no car hotspot or saved credentials, so it is the default on Android 10+.
+    @Test fun freshInstallUsesWifiDirect() {
+        prefs.edit().clear().apply()
+        assertEquals(WirelessHotspotMode.WIFI_P2P, AirPlayPersistence.loadWirelessHotspotMode(context))
+    }
+
+    @Test @Config(sdk = [28]) fun freshInstallOnOlderAndroidUsesTheCarHotspot() {
         prefs.edit().clear().apply()
         assertEquals(WirelessHotspotMode.MANUAL, AirPlayPersistence.loadWirelessHotspotMode(context))
     }

@@ -78,19 +78,26 @@ CI rejects any credential file in the tree.
 
 The release build always signs with `ANDROID_KEYSTORE_*` and fails without them. It ships no accessory identity; import yours in Revv's Settings › CarPlay after installing.
 
-1. Create a keystore once:
+Sign it with **Revv's release keystore**. Revv lets only an app signed with its own certificate change RevvCarPlay's settings and read its route guidance; with any other key, CarPlay still shows in Revv but Settings › CarPlay says it can't reach the companion's settings.
+
+1. Build:
    ```bash
-   "/Applications/Android Studio.app/Contents/jbr/Contents/Home/bin/keytool" -genkeypair -v -keystore ~/revvcarplay-release.jks -alias revvcarplay -keyalg RSA -keysize 2048 -validity 10000
-   ```
-2. Build:
-   ```bash
-   JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ANDROID_KEYSTORE_PATH=~/revvcarplay-release.jks ANDROID_KEYSTORE_PASSWORD='…' ANDROID_KEY_ALIAS=revvcarplay ANDROID_KEY_PASSWORD='…' ./gradlew :mobile:assembleRelease
+   JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ANDROID_KEYSTORE_PATH=~/revv-release.jks ANDROID_KEYSTORE_PASSWORD='…' ANDROID_KEY_ALIAS='…' ANDROID_KEY_PASSWORD='…' ./gradlew :mobile:assembleRelease
    ```
    Output: `mobile/build/outputs/apk/release/mobile-release.apk`.
-3. Check the signature:
+2. Check the signature:
    ```bash
    ~/Library/Android/sdk/build-tools/36.0.0/apksigner verify --print-certs mobile/build/outputs/apk/release/mobile-release.apk
    ```
+
+### Releases
+
+Pushing a tag such as `v0.2.0` runs [.github/workflows/release.yml](.github/workflows/release.yml): the unit
+tests, then the release APK signed with Revv's keystore and versioned from the tag (`v1.2.3` is 1.2.3, code
+1002003), checked for credential files and published as a GitHub release with its SHA-256. A tag with a suffix
+(`v0.2.0-beta.1`) is a pre-release. It needs the Revv repository's four secrets added here too:
+`REVV_KEYSTORE_BASE64` (the keystore, `base64 -i revv-release.jks`), `REVV_KEYSTORE_PASSWORD`, `REVV_KEY_ALIAS` and
+`REVV_KEY_PASSWORD`.
 
 ## Documentation
 
