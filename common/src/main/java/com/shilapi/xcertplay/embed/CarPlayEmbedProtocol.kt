@@ -42,8 +42,9 @@ object CarPlayEmbedProtocol {
      */
     const val MSG_CONFIGURE = 7
 
-    // Settings (version 2). Only a host signed with the same certificate as RevvCarPlay may send
-    // these; anyone else gets MSG_ERROR with ERROR_UNTRUSTED.
+    // Settings (version 2). Only a host signed with the same certificate as RevvCarPlay, or with one
+    // in revvcarplay.trustedHostCertificates (Revv's Play signing key), may send these; anyone else
+    // gets MSG_ERROR with ERROR_UNTRUSTED.
     /** Asks for MSG_SETTINGS. */
     const val MSG_GET_SETTINGS = 8
     /**

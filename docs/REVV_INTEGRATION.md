@@ -72,9 +72,11 @@ looks the name up near the car and routes its own map there when the place's dis
 ## Settings (protocol version 2)
 
 RevvCarPlay keeps no settings screen of its own for what affects the CarPlay session; the host
-shows them. Messages 8–14 are accepted only from an app signed with RevvCarPlay's certificate
-(`PackageManager.checkSignatures`), others get ERROR `untrusted`, so build Revv and RevvCarPlay
-with the same key. The SETTINGS bundle holds:
+shows them. Messages 8–15 (and GUIDANCE) are only for an app signed with RevvCarPlay's certificate
+(`PackageManager.checkSignatures`) or with one listed in `revvcarplay.trustedHostCertificates` in
+gradle.properties (`PackageManager.hasSigningCertificate`, which follows key rotation); others get
+ERROR `untrusted`. So build Revv and RevvCarPlay with the same key, and list Revv's Google Play app
+signing certificate there, since Play signs Revv with that instead. The SETTINGS bundle holds:
 
 | Key | Type | Changeable | Meaning |
 |---|---|---|---|

@@ -1,5 +1,9 @@
 # DiPlay 0.2.10 — 2026-10-03
 
+## RevvCarPlay 0.1.1
+
+- Host apps signed with a certificate listed in `revvcarplay.trustedHostCertificates` (gradle.properties) may use the host settings and route guidance too, e.g. Revv as Google Play signs it when Play uses its own app signing key. Android checks them with `hasSigningCertificate`, across key rotation; a malformed fingerprint fails the build.
+
 ## RevvCarPlay 0.1.0 (fork of DiPlay 0.2.10)
 
 - Embedded CarPlay for a host app: `CarPlayEmbedService` (`com.vivekkaushik.revvcarplay.action.EMBED_CARPLAY`) hands the live CarPlay screen, touch included, to a host's SurfaceView through SurfaceControlViewHost; `EmbeddedCarPlay` runs the session without a window and keeps it alive while the host shows another screen. Android 11+. See docs/REVV_INTEGRATION.md.

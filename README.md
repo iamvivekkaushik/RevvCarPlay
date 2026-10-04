@@ -78,7 +78,7 @@ CI rejects any credential file in the tree.
 
 The release build always signs with `ANDROID_KEYSTORE_*` and fails without them. It ships no accessory identity; import yours in Revv's Settings › CarPlay after installing.
 
-Sign it with **Revv's release keystore**. Revv lets only an app signed with its own certificate change RevvCarPlay's settings and read its route guidance; with any other key, CarPlay still shows in Revv but Settings › CarPlay says it can't reach the companion's settings.
+Sign it with **Revv's release keystore**. RevvCarPlay lets only an app signed with its own certificate change its settings and read its route guidance; with any other key, CarPlay still shows in Revv but Settings › CarPlay says it can't reach the companion's settings. Google Play signs Revv with its own app signing key instead, so put that certificate's SHA-256 (Play Console › Test and release › App integrity) in `revvcarplay.trustedHostCertificates` in gradle.properties for Revv from Play to work too.
 
 1. Build:
    ```bash

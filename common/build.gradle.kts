@@ -3,6 +3,15 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 }
 
+// SHA-256 fingerprints of certificates, besides RevvCarPlay's own, whose apps may use the host settings
+// and route guidance: Revv's Google Play app signing certificate, since Play signs Revv with that rather
+// than the key RevvCarPlay shares with Revv. Comma-separated in gradle.properties; colons are optional.
+val trustedHostCertificates = providers.gradleProperty("revvcarplay.trustedHostCertificates").orNull.orEmpty()
+    .split(',')
+    .map { it.trim().replace(":", "").uppercase() }
+    .filter { it.isNotEmpty() }
+    .onEach { require(it.matches(Regex("[0-9A-F]{64}"))) { "revvcarplay.trustedHostCertificates: $it isn't a SHA-256 fingerprint" } }
+
 android {
     namespace = "com.shilapi.xcertplay.host"
     compileSdk {
@@ -11,6 +20,7 @@ android {
 
     defaultConfig {
         minSdk = 28
+        buildConfigField("String", "TRUSTED_HOST_CERTIFICATES", "\"${trustedHostCertificates.joinToString(",")}\"")
     }
 
     compileOptions {
@@ -19,6 +29,7 @@ android {
     }
 
     buildFeatures {
+        buildConfig = true
         compose = true
     }
 

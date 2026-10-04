@@ -63,7 +63,8 @@ import com.shilapi.xcertplay.glance.CarPlayGlance
  * inside the host's screen, touch included. Android 11+. See docs/REVV_INTEGRATION.md.
  *
  * The host also reads and changes RevvCarPlay's settings here (identity, link, display, audio,
- * location); those messages are accepted only from an app signed like RevvCarPlay.
+ * location); those messages are accepted only from an app signed like RevvCarPlay or with a
+ * certificate the build trusts (see [HostCertificates]).
  */
 class CarPlayEmbedService : Service() {
     private val main = Handler(Looper.getMainLooper())
@@ -172,8 +173,14 @@ class CarPlayEmbedService : Service() {
         EmbeddedCarPlay.start(this, caller.substringBefore(':'), Size(width, height), screen, display.rotation)
     }
 
+    /**
+     * The caller is signed like RevvCarPlay, or with one of [HostCertificates.trusted], such as
+     * Revv's Google Play app signing certificate. Android checks the latter across key rotation.
+     */
     private fun trusted(uid: Int): Boolean =
-        uid == Process.myUid() || packageManager.checkSignatures(uid, Process.myUid()) == PackageManager.SIGNATURE_MATCH
+        uid == Process.myUid() ||
+            packageManager.checkSignatures(uid, Process.myUid()) == PackageManager.SIGNATURE_MATCH ||
+            HostCertificates.trusted.any { packageManager.hasSigningCertificate(uid, it, PackageManager.CERT_INPUT_SHA256) }
 
     private fun settings(client: Messenger, caller: String, what: Int, data: Bundle) {
         subscribe(client)
