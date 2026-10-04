@@ -1,5 +1,10 @@
 # DiPlay 0.2.10 — 2026-10-03
 
+## RevvCarPlay 0.1.2
+
+- CarPlay's car button shows Revv's icon and the label "Revv" instead of BYD's, and the iPhone is told the car is a Revv (manufacturer and model) instead of DiPlay. A label, icon, manufacturer or model saved in the full-screen app's settings still wins. The iPhone may list the head unit as a new car once.
+- The navigation widget shows RevvCarPlay rather than DiPlay while CarPlay isn't connected.
+
 ## RevvCarPlay 0.1.1
 
 - Host apps signed with a certificate listed in `revvcarplay.trustedHostCertificates` (gradle.properties) may use the host settings and route guidance too, e.g. Revv as Google Play signs it when Play uses its own app signing key. Android checks them with `hasSigningCertificate`, across key rotation; a malformed fingerprint fails the build.

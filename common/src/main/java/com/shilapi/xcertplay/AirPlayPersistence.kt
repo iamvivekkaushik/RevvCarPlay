@@ -83,9 +83,11 @@ object AirPlayPersistence {
     private const val SAFE_AREA_KEY_PREFIX = "safe_area_"
     private const val CUSTOM_ICON_FILE = "airplay-icon.png"
 
-    const val DEFAULT_MANUFACTURER = "DiPlay"
-    const val DEFAULT_MODEL = "DiPlay"
-    const val DEFAULT_OEM_LABEL = "BYD"
+    /** Who the iPhone is told made the car, and its model, unless set otherwise. */
+    const val DEFAULT_MANUFACTURER = "Revv"
+    const val DEFAULT_MODEL = "Revv"
+    /** The label under CarPlay's car icon (res/raw/ic_car_home, Revv's icon), which returns to the head unit. */
+    const val DEFAULT_OEM_LABEL = "Revv"
     const val DEFAULT_MFI_I2C_PATH = "/dev/i2c-1"
 
     fun loadDisplayScaleTenths(context: Context): Int {
