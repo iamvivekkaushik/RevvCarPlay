@@ -5,6 +5,12 @@
 - Embedded CarPlay for a host app: `CarPlayEmbedService` (`com.vivekkaushik.revvcarplay.action.EMBED_CARPLAY`) hands the live CarPlay screen, touch included, to a host's SurfaceView through SurfaceControlViewHost; `EmbeddedCarPlay` runs the session without a window and keeps it alive while the host shows another screen. Android 11+. See docs/REVV_INTEGRATION.md.
 - Identity import: Settings → CarPlay identity imports and removes `identity.pk8` + `certificate.p7b`. The app ships no identity; a missing one is reported as such.
 - Renamed to RevvCarPlay (`com.vivekkaushik.revvcarplay`); the connection notification opens the host app while CarPlay is embedded. DiPlay's website and site generator removed.
+- Settings for the host (embed protocol 2): Revv reads and changes the identity, link, car hotspot, iPhone, display, audio and location settings and saves diagnostic reports, accepted only from an app signed like RevvCarPlay. The companion's own screen keeps window, startup and permission settings.
+- Route guidance for the host (embed protocol 3): the destination's name, the distance and time left, the arrival time and the next maneuver from CarPlay's iAP2 route guidance, sent to signed hosts. CarPlay sends no coordinates for the destination.
+- With "Modify system settings" granted, choosing the car hotspot link turns the head unit's Wi-Fi hotspot on (Android 11+, where the firmware allows it).
+- Diagnostic reports are saved to Downloads/Revv/CarPlay.
+- A launcher icon in Revv's style with a COMPANION badge; debug builds are no longer named "DiPlay HUD Test".
+- Signed releases are built and published from version tags (`.github/workflows/release.yml`), with Revv's signing key.
 
 - Publish CarPlay song metadata, position and artwork to Android media sessions; bound artwork queues and reject stale work across sessions (#82).
 - Preserve normal USBMUX frames while handling narrowly validated handshake padding (#114); let USB connect without saved wireless-hotspot credentials (#130).
