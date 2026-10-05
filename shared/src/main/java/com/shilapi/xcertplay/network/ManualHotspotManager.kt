@@ -238,7 +238,8 @@ class ManualHotspotManager(
 
     private fun interfaceScore(name: String, address: InetAddress): Int {
         var score = when {
-            name.startsWith("ap") || name.contains("softap", ignoreCase = true) -> 100
+            // Samsung names its hotspot swlan0.
+            name.startsWith("ap") || name.startsWith("swlan") || name.contains("softap", ignoreCase = true) -> 100
             name.startsWith("p2p") -> 80
             name.startsWith("wlan") -> 70
             else -> 0
@@ -444,6 +445,12 @@ class ManualHotspotManager(
             "sit",
             "ip6",
             "bond",
+            // Wi-Fi calling tunnels and mobile data (MediaTek, 464xlat) carry their own fe80:: address,
+            // which once tied with Samsung's hotspot and was sent to the iPhone instead.
+            "epdg",
+            "ipsec",
+            "ccmni",
+            "v4-",
         )
     }
 }

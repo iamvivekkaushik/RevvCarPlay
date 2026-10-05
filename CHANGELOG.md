@@ -4,6 +4,7 @@
 
 - The connection service no longer crashes when Android refuses its microphone type. On Android 16 (seen on a Galaxy S23) a session started by Revv may not hold microphone or location in the background even with both permissions granted, so it carries on without them.
 - When the carrier requires a tethering check, which only system apps may skip, RevvCarPlay asks the driver to turn the hotspot on in the head unit's settings instead of asking for "Modify system settings" again.
+- The car hotspot link finds Samsung's hotspot (`swlan0`) and skips Wi-Fi calling and mobile data tunnels. The iPhone was sent a Wi-Fi calling tunnel's address instead and waited at "Wireless CarPlay control running".
 
 ## RevvCarPlay 0.1.2
 
