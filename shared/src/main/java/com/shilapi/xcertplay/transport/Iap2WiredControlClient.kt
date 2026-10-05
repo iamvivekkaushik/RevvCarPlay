@@ -134,9 +134,12 @@ class Iap2WiredControlClient(
         private const val MAX_RECV_TIMEOUT_MILLIS = 5 * 60 * 1_000L
         private const val NANOS_PER_MILLISECOND = 1_000_000L
 
-        /** Exact LIVI wired PowerSourceUpdate encoding: current and the charge-if-powered flag. */
+        /**
+         * LIVI's wired PowerSourceUpdate encoding: current and the charge-if-powered flag, which
+         * stays off when there is no current to charge with.
+         */
         fun powerSourceUpdate(availableCurrentMilliAmps: Int): Iap2Frame =
-            Iap2ControlMessages.powerSourceUpdate(availableCurrentMilliAmps, charging = true)
+            Iap2ControlMessages.powerSourceUpdate(availableCurrentMilliAmps, charging = availableCurrentMilliAmps > 0)
 
         /** Exact five subscription requests emitted by LIVI's wired bring-up. */
         fun subscriptions(): List<Iap2Frame> = Iap2ControlMessages.subscriptions()

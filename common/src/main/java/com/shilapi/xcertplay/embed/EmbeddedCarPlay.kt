@@ -21,6 +21,7 @@ import com.shilapi.xcertplay.DiPlayBootstrap
 import com.shilapi.xcertplay.DiPlayPreferences
 import com.shilapi.xcertplay.DiPlaySessionService
 import com.shilapi.xcertplay.MapMirrors
+import com.shilapi.xcertplay.UsbPower
 import com.shilapi.xcertplay.airplay.AirPlayConfig
 import com.shilapi.xcertplay.airplay.AirPlayDisplayConfig
 import com.shilapi.xcertplay.airplay.AirPlayDisplaySettings
@@ -709,6 +710,7 @@ internal object EmbeddedCarPlay {
                 vehicleStatusEnabled = false,
                 vehicleSpeedEnabled = false,
             ),
+            availableCurrentMilliAmps = UsbPower.availableCurrentMilliAmps(context),
             label = context.getString(R.string.app_name),
             hostName = "revv-" + deviceId.replace(":", "").lowercase(),
             hostMac = deviceId.split(":").map { it.toInt(16).toByte() }.toByteArray(),

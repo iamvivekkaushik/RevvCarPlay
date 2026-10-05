@@ -134,6 +134,7 @@ class CarPlayHostActivity : ComponentActivity() {
         linuxI2cPath = if (mfiTarget == MfiTarget.I2C) mfiI2cPath.trim() else null,
         remoteMfiServer = remoteMfiServer.trim().takeIf { it.isNotEmpty() },
         remoteMfiToken = remoteMfiToken.takeIf { it.isNotEmpty() },
+        availableCurrentMilliAmps = UsbPower.availableCurrentMilliAmps(this),
         identification = Iap2IdentificationConfig(
             name = getString(R.string.app_name),
             modelIdentifier = normalizedModel(),

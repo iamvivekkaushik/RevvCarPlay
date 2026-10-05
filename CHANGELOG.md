@@ -3,6 +3,7 @@
 ## RevvCarPlay 0.1.4
 
 - When another Wi-Fi Direct connection holds the radio, such as a phone left connected to a TV for screen mirroring, embedded CarPlay names the device on its other end instead of saying a previous connection "needs a reset", and tells the host it can be reset (STATE `resetWifiDirect`). The host's new RESET_WIFI_DIRECT (protocol version 4) ends it, waits until it's gone and connects. RevvCarPlay still never ends another app's connection by itself.
+- A phone hosting wired CarPlay no longer offers the iPhone 2.4 A to charge with. Android cut the phone's USB port for over-current 0.2 s after the offer (seen on a Galaxy S23), and the iPhone dropped off before CarPlay started. Head units, which run off the car, still offer 2.4 A; a phone is told apart by its battery and earpiece.
 
 ## RevvCarPlay 0.1.3
 
