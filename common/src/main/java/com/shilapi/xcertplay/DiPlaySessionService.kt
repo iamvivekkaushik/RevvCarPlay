@@ -49,12 +49,19 @@ class DiPlaySessionService : Service() {
             if (wantsLocation && checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                 types = types or ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
             }
-            try {
-                startForeground(1, notification, types)
-            } catch (denied: SecurityException) {
-                // Android 14+ refuses the location type when the app is not eligible at this moment
-                // (started from the background without a visible client); carry on without it.
-                startForeground(1, notification, types and ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION.inv())
+            // Android 14+ refuses the location and microphone types when the app is not eligible at this
+            // moment (started from the background, e.g. by Revv's embed binding: Android 16 on a Galaxy
+            // S23 refused the microphone even with RECORD_AUDIO granted); carry on without them.
+            val location = ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
+            val microphone = ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
+            val attempts = listOf(types, types and location.inv(), types and microphone.inv(), types and (location or microphone).inv()).distinct()
+            for ((index, attempt) in attempts.withIndex()) {
+                try {
+                    startForeground(1, notification, attempt)
+                    break
+                } catch (denied: SecurityException) {
+                    if (index == attempts.lastIndex) throw denied
+                }
             }
         } else startForeground(1, notification)
         return START_NOT_STICKY

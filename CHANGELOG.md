@@ -1,5 +1,9 @@
 # DiPlay 0.2.10 — 2026-10-03
 
+## RevvCarPlay 0.1.3
+
+- The connection service no longer crashes when Android refuses its microphone type. On Android 16 (seen on a Galaxy S23) a session started by Revv may not hold microphone or location in the background even with both permissions granted, so it carries on without them.
+
 ## RevvCarPlay 0.1.2
 
 - CarPlay's car button shows Revv's icon and the label "Revv" instead of BYD's, and the iPhone is told the car is a Revv (manufacturer and model) instead of DiPlay. A label, icon, manufacturer or model saved in the full-screen app's settings still wins. The iPhone may list the head unit as a new car once.
