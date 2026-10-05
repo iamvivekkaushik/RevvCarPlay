@@ -27,6 +27,7 @@ class Iap2WiredControlClient(
         timeoutMillis: Long = DEFAULT_TIMEOUT_MILLIS,
         locationProvider: Iap2LocationProvider? = null,
         vehicleStatusProvider: VehicleStatusProvider? = null,
+        outbox: Iap2Outbox? = null,
         onIncoming: (Iap2Frame) -> Unit = {},
         onProgress: (String) -> Unit = {},
     ): Iap2WiredControlResult {
@@ -59,6 +60,7 @@ class Iap2WiredControlClient(
         var carPlayStartSessions = 0
         val location = Iap2LocationReporter(locationProvider, onProgress)
         val vehicleStatus = Iap2VehicleStatusReporter(vehicleStatusProvider, onProgress)
+        outbox?.open()
         try {
             while (true) {
                 val remaining = remainingMillis(deadlineNanos)
@@ -67,7 +69,9 @@ class Iap2WiredControlClient(
                 }
                 location.tick { send(it, deadlineNanos) }
                 vehicleStatus.tick { send(it, deadlineNanos) }
-                val pollTimeout = vehicleStatus.pollTimeout(location.pollTimeout(remaining))
+                outbox?.drain { send(it, deadlineNanos) }
+                val polled = vehicleStatus.pollTimeout(location.pollTimeout(remaining))
+                val pollTimeout = outbox?.pollTimeout(polled) ?: polled
                 val incoming = session.recv(pollTimeout)
                 if (incoming == null) {
                     if (session.isClosed) {
@@ -117,6 +121,7 @@ class Iap2WiredControlClient(
                 }
             }
         } finally {
+            outbox?.close()
             locationProvider?.stop()
         }
     }

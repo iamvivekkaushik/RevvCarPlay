@@ -275,6 +275,11 @@ object Iap2ControlMessages {
         optionalVoid(5, maxNonSiphoningCurrentExceeded)
     }
 
+    /** Seeks the playing track to [elapsedMillis] in. */
+    fun setNowPlayingElapsedTime(elapsedMillis: Long): Iap2Frame = Iap2Messages.build(Iap2Endpoints.SET_NOW_PLAYING_INFORMATION) {
+        u32(0, elapsedMillis.coerceIn(0, 0xffff_ffffL))
+    }
+
     fun subscriptions(): List<Iap2Frame> = listOf(
         Iap2Messages.build(Iap2Endpoints.START_NOW_PLAYING_UPDATES) {
             group(0) {

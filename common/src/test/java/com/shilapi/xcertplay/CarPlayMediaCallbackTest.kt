@@ -16,7 +16,16 @@ import org.robolectric.annotation.Config
 @Config(sdk = [29], manifest = Config.NONE)
 class CarPlayMediaCallbackTest {
     private val sent = mutableListOf<Int>()
-    private val callback = CarPlayMediaCallback { index, _ -> sent += index }
+    private val seeks = mutableListOf<Long>()
+    private val callback = CarPlayMediaCallback(send = { index, _ -> sent += index }, seek = { seeks += it })
+
+    @Test
+    fun seekGoesToTheIphoneAsAPosition() {
+        callback.onSeekTo(83_500)
+
+        assertEquals(listOf(83_500L), seeks)
+        assertEquals(emptyList<Int>(), sent)
+    }
 
     @Test
     fun controllerPlayAndPauseAreExplicit() {

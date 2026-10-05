@@ -452,6 +452,18 @@ object Iap2Endpoints {
         "Now Playing",
         Iap2Direction.ACCESSORY_TO_IPHONE,
     )
+    /** Moves the playing track to ElapsedTime (ms), or the queue to PlaybackQueueIndex: a seek. */
+    val SET_NOW_PLAYING_INFORMATION = endpoint(
+        0x5003,
+        "SetNowPlayingInformation",
+        "Now Playing",
+        Iap2Direction.ACCESSORY_TO_IPHONE,
+        Iap2Confidence.MEDIUM,
+        fields = listOf(
+            field(0, "ElapsedTime", Iap2WireType.U32),
+            field(1, "PlaybackQueueIndex", Iap2WireType.U32),
+        ),
+    )
     val START_COMMUNICATIONS_UPDATES = endpoint(
         0x4157,
         "startCommunicationsUpdatesHandler",
@@ -625,7 +637,7 @@ object Iap2Endpoints {
         registryEndpoint(0xA101, "VehicleStatusUpdate", "Vehicle", Iap2Direction.ACCESSORY_TO_IPHONE),
         registryEndpoint(0xA102, "StopVehicleStatusUpdates", "Vehicle", Iap2Direction.IPHONE_TO_ACCESSORY),
         registryEndpoint(0x5001, "NowPlayingUpdate", "Now Playing", Iap2Direction.IPHONE_TO_ACCESSORY),
-        registryEndpoint(0x5003, "SetNowPlayingInfo", "Now Playing", Iap2Direction.ACCESSORY_TO_IPHONE),
+        SET_NOW_PLAYING_INFORMATION,
         registryEndpoint(0x4C00, "StartMediaLibraryInformation", "Media Library", Iap2Direction.ACCESSORY_TO_IPHONE),
         registryEndpoint(0x4C01, "MediaLibraryInformation", "Media Library", Iap2Direction.IPHONE_TO_ACCESSORY),
         registryEndpoint(0x4C02, "StopMediaLibraryInformation", "Media Library", Iap2Direction.ACCESSORY_TO_IPHONE),

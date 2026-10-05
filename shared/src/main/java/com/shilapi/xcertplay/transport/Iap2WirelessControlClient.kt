@@ -29,6 +29,7 @@ class Iap2WirelessControlClient(
         locationRequest: Iap2LocationRequest? = null,
         continueLocationRequest: Boolean = false,
         onReady: () -> Unit = {},
+        outbox: Iap2Outbox? = null,
         onIncoming: (Iap2Frame) -> Unit = {},
         onProgress: (String) -> Unit = {},
     ): Iap2WirelessControlResult {
@@ -72,6 +73,8 @@ class Iap2WirelessControlClient(
         var wirelessCarPlayAvailableSeen = false
         val location = Iap2LocationReporter(locationProvider, onProgress, locationRequest, continueLocationRequest)
         val vehicleStatus = Iap2VehicleStatusReporter(vehicleStatusProvider, onProgress)
+        outbox?.open()
+        try {
         while (true) {
                 val remaining = remainingMillis(deadlineNanos)
                 if (remaining == 0L) {
@@ -88,7 +91,9 @@ class Iap2WirelessControlClient(
                 }
                 location.tick { send(it, deadlineNanos) }
                 vehicleStatus.tick { send(it, deadlineNanos) }
-                val pollTimeout = vehicleStatus.pollTimeout(location.pollTimeout(remaining))
+                outbox?.drain { send(it, deadlineNanos) }
+                val polled = vehicleStatus.pollTimeout(location.pollTimeout(remaining))
+                val pollTimeout = outbox?.pollTimeout(polled) ?: polled
                 val incoming = session.recv(pollTimeout)
                 if (incoming == null) {
                     if (session.isClosed) {
@@ -217,6 +222,9 @@ class Iap2WirelessControlClient(
                         forwardedFrames++
                     }
                 }
+        }
+        } finally {
+            outbox?.close()
         }
     }
 

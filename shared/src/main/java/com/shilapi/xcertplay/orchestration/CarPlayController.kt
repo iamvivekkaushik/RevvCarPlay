@@ -31,6 +31,7 @@ import com.shilapi.xcertplay.airplay.AirPlaySessionListener
 import com.shilapi.xcertplay.airplay.PairingStore
 import com.shilapi.xcertplay.airplay.VideoInCar
 import com.shilapi.xcertplay.hud.BydNavigationOutputs
+import com.shilapi.xcertplay.iap2.message.Iap2ControlMessages
 import com.shilapi.xcertplay.iap2.session.Iap2Session
 import com.shilapi.xcertplay.mfi.Iap2MfiAuthenticationClient
 import com.shilapi.xcertplay.mfi.MfiAuthenticationClient
@@ -54,6 +55,7 @@ import com.shilapi.xcertplay.transport.Ch341UsbSession
 import com.shilapi.xcertplay.transport.Iap2IdentificationConfig
 import com.shilapi.xcertplay.transport.Iap2LocationProvider
 import com.shilapi.xcertplay.transport.Iap2LocationRequest
+import com.shilapi.xcertplay.transport.Iap2Outbox
 import com.shilapi.xcertplay.transport.Iap2UsbMuxHost
 import com.shilapi.xcertplay.transport.Iap2UsbSession
 import com.shilapi.xcertplay.transport.Iap2WiredCarPlayEndpoint
@@ -205,6 +207,9 @@ class CarPlayController(
     @Volatile private var mux: Iap2UsbMuxHost? = null
     @Volatile private var csm: Iap2Session? = null
     @Volatile private var activeSession: AirPlaySession? = null
+
+    /** iAP2 messages for the iPhone from other threads, such as seeks; see [seekNowPlaying]. */
+    private val outbox = Iap2Outbox()
     private val clusterUiLock = Any()
     private var clusterUiStream: Pair<AirPlaySession, Int>? = null
     private var clusterUiShown = true
@@ -433,6 +438,17 @@ class CarPlayController(
         } catch (_: Exception) {
             false
         }
+    }
+
+    /**
+     * Seeks the iPhone's playing track to [positionMs] in, over iAP2's SetNowPlayingInformation.
+     * False when no iAP2 control session runs to carry it.
+     */
+    fun seekNowPlaying(positionMs: Long): Boolean {
+        if (closed) return false
+        val sent = outbox.post(Iap2ControlMessages.setNowPlayingElapsedTime(positionMs))
+        debugLog("now playing seek to ${positionMs}ms queued=$sent")
+        return sent
     }
 
     fun sendMediaButton(index: Int): Boolean {
@@ -1104,6 +1120,7 @@ class CarPlayController(
                 locationProvider = locationProvider,
                 vehicleStatusProvider = vehicleStatusProvider,
                 locationRequest = wirelessLocationRequest,
+                outbox = outbox,
                 onIncoming = ::onRouteFrame,
                 onProgress = ::debugLog,
             )
@@ -1198,6 +1215,7 @@ class CarPlayController(
                         onReady = {
                             onWirelessTunnelReady(generation)
                         },
+                        outbox = outbox,
                         onIncoming = ::onRouteFrame,
                         onProgress = { message -> debugLog("iAP tunnel $message") },
                     )
@@ -1706,6 +1724,7 @@ class CarPlayController(
                 timeoutMillis = controlLoopTimeoutMillis(),
                 locationProvider = locationProvider,
                 vehicleStatusProvider = vehicleStatusProvider,
+                outbox = outbox,
                 onIncoming = ::onRouteFrame,
                 onProgress = { message -> debugLog("wired $message") },
             )

@@ -203,7 +203,8 @@ internal object CarPlayMediaKeys {
         }
         session?.setPlaybackState(
             PlaybackState.Builder()
-                .setActions(ACTIONS)
+                // Seeking needs the track's length to aim within.
+                .setActions(if (nowPlaying.durationMillis != null) ACTIONS or PlaybackState.ACTION_SEEK_TO else ACTIONS)
                 .setState(
                     if (playing) PlaybackState.STATE_PLAYING else PlaybackState.STATE_PAUSED,
                     nowPlaying.elapsedMillis ?: PlaybackState.PLAYBACK_POSITION_UNKNOWN,
@@ -227,7 +228,12 @@ internal object CarPlayMediaKeys {
         Log.i(TAG, "media key $source -> CarPlay $index sent=$sent")
     }
 
-    private val callback = CarPlayMediaCallback(::send)
+    private val callback = CarPlayMediaCallback(::send, ::seek)
+
+    private fun seek(positionMs: Long) {
+        val sent = synchronized(this) { controller }?.seekNowPlaying(positionMs) ?: false
+        Log.i(TAG, "seek to ${positionMs}ms -> CarPlay sent=$sent")
+    }
 
     internal fun androidMetadata(info: CarPlayNowPlaying, artwork: Bitmap? = null): MediaMetadata =
         MediaMetadata.Builder().apply {
@@ -283,7 +289,10 @@ internal object CarPlayMediaKeys {
  * Media-session input → CarPlay presses. Hardware keys arrive as button events and keep the toggle;
  * media controllers (not hardware keys) call [onPlay] and [onPause] with an explicit intent.
  */
-internal class CarPlayMediaCallback(private val send: (index: Int, source: String) -> Unit) : MediaSession.Callback() {
+internal class CarPlayMediaCallback(
+    private val send: (index: Int, source: String) -> Unit,
+    private val seek: (positionMs: Long) -> Unit = {},
+) : MediaSession.Callback() {
     override fun onMediaButtonEvent(mediaButtonIntent: Intent): Boolean {
         @Suppress("DEPRECATION")
         val event = mediaButtonIntent.getParcelableExtra<KeyEvent>(Intent.EXTRA_KEY_EVENT) ?: return false
@@ -298,4 +307,5 @@ internal class CarPlayMediaCallback(private val send: (index: Int, source: Strin
     override fun onPause() = send(CarPlayMediaButton.PAUSE, "pause")
     override fun onSkipToNext() = send(CarPlayMediaButton.NEXT, "next")
     override fun onSkipToPrevious() = send(CarPlayMediaButton.PREVIOUS, "previous")
+    override fun onSeekTo(pos: Long) = seek(pos)
 }

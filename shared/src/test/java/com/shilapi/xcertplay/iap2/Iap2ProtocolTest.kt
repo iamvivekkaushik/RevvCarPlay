@@ -73,6 +73,14 @@ class Iap2ProtocolTest {
     }
 
     @Test
+    fun nowPlayingSeekCarriesTheElapsedTimeInMilliseconds() {
+        val frame = Iap2ControlMessages.setNowPlayingElapsedTime(83_500)
+
+        assertEquals(0x5003, frame.messageId)
+        assertEquals(83_500L, Iap2BodyReader.of(frame).u32(0))
+    }
+
+    @Test
     fun carPlayStartSessionSupportsReferenceOptionalFields() {
         val frame = Iap2CarPlayMessages.startSession(
             wiredIpv6Addresses = listOf("fe80::2"),
