@@ -9,9 +9,10 @@ object CarPlayEmbedProtocol {
     const val ACTION = "com.vivekkaushik.revvcarplay.action.EMBED_CARPLAY"
     /**
      * 2 added the settings messages (MSG_GET_SETTINGS to MSG_SAVE_REPORT, MSG_SETTINGS, MSG_NOTICE);
-     * 3 added MSG_GUIDANCE; 4 added MSG_RESET_WIFI_DIRECT and KEY_RESET_WIFI_DIRECT.
+     * 3 added MSG_GUIDANCE; 4 added MSG_RESET_WIFI_DIRECT and KEY_RESET_WIFI_DIRECT; 5 added
+     * MSG_HOST_UI.
      */
-    const val VERSION = 4
+    const val VERSION = 5
 
     // Host -> RevvCarPlay.
     /** KEY_HOST_TOKEN, KEY_DISPLAY_ID, KEY_WIDTH, KEY_HEIGHT, KEY_SCREEN_WIDTH, KEY_SCREEN_HEIGHT. */
@@ -98,6 +99,12 @@ object CarPlayEmbedProtocol {
      * absent when unknown.
      */
     const val MSG_GUIDANCE = 105
+    /**
+     * The driver tapped the car's icon in CarPlay, asking for the car's own screen: show yours, e.g.
+     * leave full screen. Sent to every host showing CarPlay; with none, RevvCarPlay opens the
+     * home screen as before (version 5).
+     */
+    const val MSG_HOST_UI = 106
     /** KEY_ERROR: the view cannot be shown, or (ERROR_UNTRUSTED) a settings message was refused. */
     const val MSG_ERROR = 199
 

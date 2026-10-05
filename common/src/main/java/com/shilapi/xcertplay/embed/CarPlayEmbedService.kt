@@ -93,7 +93,13 @@ class CarPlayEmbedService : Service() {
 
     override fun onBind(intent: Intent): IBinder = messenger.binder
 
+    override fun onCreate() {
+        super.onCreate()
+        EmbeddedCarPlay.onHostUiRequested = { embeds.values.toList().forEach { it.hostUiRequested() } }
+    }
+
     override fun onDestroy() {
+        EmbeddedCarPlay.onHostUiRequested = null
         embeds.values.toList().forEach { it.release() }
         embeds.clear()
         subscribers.values.forEach(EmbeddedCarPlay::removeListener)
@@ -405,6 +411,12 @@ class CarPlayEmbedService : Service() {
             host.setView(view, width.coerceAtLeast(1), height.coerceAtLeast(1))
             EmbeddedCarPlay.hostForwardsTouch = false
             EmbeddedCarPlay.addListener(statusListener)
+            EmbeddedCarPlay.hostViews.incrementAndGet()
+        }
+
+        /** The driver tapped the car's icon in CarPlay: the host shows its own screen. */
+        fun hostUiRequested() {
+            if (!released) send(client, CarPlayEmbedProtocol.MSG_HOST_UI, Bundle())
         }
 
         fun resize(width: Int, height: Int, settled: Boolean) {
@@ -416,6 +428,7 @@ class CarPlayEmbedService : Service() {
         fun release() {
             if (released) return
             released = true
+            EmbeddedCarPlay.hostViews.decrementAndGet()
             EmbeddedCarPlay.removeListener(statusListener)
             host.release()
             Log.i(TAG, "$caller no longer shows CarPlay")

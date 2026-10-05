@@ -47,6 +47,7 @@ on every message. Constants live in `CarPlayEmbedProtocol`.
 | companion → host | `103` SETTINGS | `settings` (Bundle, below) | Every setting's value, on request and after each change |
 | companion → host | `104` NOTICE | `notice` (string), `ok` (boolean) | A line for the driver about an import, a hotspot save or a report |
 | companion → host | `105` GUIDANCE | `destination` (string), `routeMeters`, `arrival` (epoch s), `remainingSeconds` (longs), `maneuverType`, `maneuverMeters`, `drivingSide` (ints), `road` (string); numbers absent when unknown | CarPlay's route guidance (version 3), to a host signed like RevvCarPlay after GET_SETTINGS, then on every change. See below |
+| companion → host | `106` HOST_UI | — | The driver tapped the car's icon in CarPlay: show your own screen, e.g. leave full screen (version 5). Sent to every host showing CarPlay; with none, the companion opens Android's home screen as before |
 | companion → host | `199` ERROR | `error`: `unsupported`, `bad_request` or `untrusted` | The view cannot be shown, or a settings message was refused |
 
 `phase` is one of `setup_required`, `idle`, `starting`, `connecting`, `connected`, `reconnecting`,

@@ -463,7 +463,24 @@ internal object EmbeddedCarPlay {
         if (!AirPlayPersistence.loadClusterMapEnabled(appContext ?: return)) renderer.setSurface(SCREEN_TYPE_ALT, surface)
     }
 
+    /**
+     * How many host views show CarPlay, and how to tell them the driver tapped the car's icon in
+     * CarPlay; [CarPlayEmbedService] keeps both. Read from AirPlay's threads.
+     */
+    val hostViews = java.util.concurrent.atomic.AtomicInteger()
+
+    @Volatile
+    var onHostUiRequested: (() -> Unit)? = null
+
     private fun sessionListener(gen: Int): AirPlaySessionListener = object : AirPlaySessionListener {
+        override fun onHostUiRequested(session: AirPlaySession): Boolean {
+            // With a host showing CarPlay, the car's own screen is the host's.
+            val tell = onHostUiRequested ?: return false
+            if (hostViews.get() <= 0) return false
+            main.post(tell)
+            return true
+        }
+
         override fun onSessionActive(session: AirPlaySession) {
             main.post {
                 if (gen != generation) return@post

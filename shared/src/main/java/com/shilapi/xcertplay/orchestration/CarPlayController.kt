@@ -315,7 +315,12 @@ class CarPlayController(
 
         // The user tapped the car icon in CarPlay: show the head unit's own menu, like its Home button.
         // The session keeps running in the background, so returning to DiPlay resumes CarPlay.
-        override fun onHostUiRequested(session: AirPlaySession) {
+        override fun onHostUiRequested(session: AirPlaySession): Boolean {
+            // An app showing CarPlay in its own screen, such as Revv, answers with that screen.
+            if (uiListener?.onHostUiRequested(session) == true) {
+                debugLog("CarPlay requested the car UI; the host app shows it")
+                return true
+            }
             debugLog("CarPlay requested the car UI; opening the head-unit home screen")
             runCatching {
                 appContext.startActivity(
@@ -323,7 +328,7 @@ class CarPlayController(
                         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
                 )
             }.onFailure { debugLog("Car home screen could not open: ${it.javaClass.simpleName}") }
-            uiListener?.onHostUiRequested(session)
+            return true
         }
 
         override fun onRemoteControlMessage(session: AirPlaySession, streamId: Long, message: Map<String, Any?>) {
