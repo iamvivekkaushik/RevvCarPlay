@@ -9,9 +9,9 @@ object CarPlayEmbedProtocol {
     const val ACTION = "com.vivekkaushik.revvcarplay.action.EMBED_CARPLAY"
     /**
      * 2 added the settings messages (MSG_GET_SETTINGS to MSG_SAVE_REPORT, MSG_SETTINGS, MSG_NOTICE);
-     * 3 added MSG_GUIDANCE.
+     * 3 added MSG_GUIDANCE; 4 added MSG_RESET_WIFI_DIRECT and KEY_RESET_WIFI_DIRECT.
      */
-    const val VERSION = 3
+    const val VERSION = 4
 
     // Host -> RevvCarPlay.
     /** KEY_HOST_TOKEN, KEY_DISPLAY_ID, KEY_WIDTH, KEY_HEIGHT, KEY_SCREEN_WIDTH, KEY_SCREEN_HEIGHT. */
@@ -70,11 +70,20 @@ object CarPlayEmbedProtocol {
      * hotspot link (MSG_CONFIGURE, MSG_SET_HOTSPOT) and every session over it do the same.
      */
     const val MSG_HOTSPOT_ON = 15
+    /**
+     * Ends the device's Wi-Fi Direct connection, whichever app made it (screen mirroring to a TV,
+     * say), then connects CarPlay. Send only when the driver asks, after MSG_STATE's
+     * KEY_RESET_WIFI_DIRECT; MSG_NOTICE says if it could not.
+     */
+    const val MSG_RESET_WIFI_DIRECT = 16
 
     // RevvCarPlay -> host.
     /** KEY_SURFACE_PACKAGE, KEY_VERSION: put the package into your SurfaceView. */
     const val MSG_ATTACHED = 101
-    /** KEY_PHASE, KEY_DETAIL, KEY_WIRELESS, KEY_HOTSPOT_MODE, KEY_VIDEO_ACTIVE, KEY_MISSING (when PHASE_SETUP_REQUIRED). */
+    /**
+     * KEY_PHASE, KEY_DETAIL, KEY_WIRELESS, KEY_HOTSPOT_MODE, KEY_VIDEO_ACTIVE, KEY_MISSING (when
+     * PHASE_SETUP_REQUIRED), KEY_RESET_WIFI_DIRECT.
+     */
     const val MSG_STATE = 102
     /** KEY_SETTINGS: every setting's current value (KEY_* below SETTING_*). Sent on request and after each change. */
     const val MSG_SETTINGS = 103
@@ -106,6 +115,11 @@ object CarPlayEmbedProtocol {
     const val KEY_WIRELESS = "wireless"
     const val KEY_VIDEO_ACTIVE = "videoActive"
     const val KEY_MISSING = "missing"
+    /**
+     * boolean, with PHASE_FAILED: another Wi-Fi Direct connection holds the radio (KEY_DETAIL names
+     * it); MSG_RESET_WIFI_DIRECT ends it and connects.
+     */
+    const val KEY_RESET_WIFI_DIRECT = "resetWifiDirect"
     const val KEY_ERROR = "error"
     const val KEY_EVENT = "event"
     const val KEY_HOTSPOT_MODE = "hotspotMode"

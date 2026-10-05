@@ -71,6 +71,8 @@ internal object EmbeddedCarPlay {
         val videoActive: Boolean = false,
         /** What the driver must do in RevvCarPlay first (CarPlayEmbedProtocol.SETUP_*). */
         val missing: List<String> = emptyList(),
+        /** Failed because another Wi-Fi Direct connection holds the radio: [resetWifiDirect] would end it. */
+        val resetWifiDirect: Boolean = false,
     )
 
     private const val TAG = "RevvCarPlay-Embed"
@@ -498,7 +500,11 @@ internal object EmbeddedCarPlay {
                 val app = appContext
                 val detail = app?.let { report.describe(it, wireless) } ?: report.toString()
                 when {
-                    report is CarPlayStatus.Failed && report.wifiResetRequired -> publish(Phase.FAILED, detail)
+                    report is CarPlayStatus.Failed && report.wifiResetRequired -> publish(
+                        Phase.FAILED,
+                        app?.let { wifiDirectInUse(it, report.wifiDirectHolder) } ?: detail,
+                        resetWifiDirect = true,
+                    )
                     report is CarPlayStatus.Failed -> { publish(Phase.RECONNECTING, detail); reconnectAfterLoss(detail) }
                     CarPlayBackgroundSession.active -> publish(Phase.CONNECTED, detail)
                     else -> publish(Phase.CONNECTING, detail)
@@ -598,7 +604,41 @@ internal object EmbeddedCarPlay {
         sessionDisplay = null
     }
 
-    private fun publish(phase: Phase, detail: String, wireless: Boolean = status.wireless, missing: List<String> = emptyList()) {
+    private fun wifiDirectInUse(context: Context, holder: String?): String =
+        if (holder != null) context.getString(R.string.embed_wifi_direct_in_use_by, holder)
+        else context.getString(R.string.embed_wifi_direct_in_use)
+
+    /**
+     * Ends the device's Wi-Fi Direct connection, whichever app made it, and connects CarPlay again.
+     * Only on the driver's say-so: it ends screen mirroring or a TV's link. [done] says whether it
+     * was ended.
+     */
+    fun resetWifiDirect(context: Context, done: (Boolean) -> Unit) {
+        val app = context.applicationContext
+        appContext = app
+        val failed = status
+        publish(Phase.STARTING, app.getString(R.string.embed_ending_wifi_direct))
+        WifiDirectReset.clear(app) { cleared ->
+            done(cleared)
+            when {
+                !cleared -> publish(failed.phase, failed.detail, resetWifiDirect = failed.resetWifiDirect)
+                controller != null && CarPlayBackgroundSession.isOwner(this) -> restart("The other Wi-Fi Direct connection ended")
+                else -> scheduleLaunch()
+            }
+        }
+    }
+
+    /**
+     * [resetWifiDirect] stays as it was while the same failure is announced again, as it is to each
+     * host view that attaches and on every stream change.
+     */
+    private fun publish(
+        phase: Phase,
+        detail: String,
+        wireless: Boolean = status.wireless,
+        missing: List<String> = emptyList(),
+        resetWifiDirect: Boolean = status.resetWifiDirect && phase == status.phase && detail == status.detail,
+    ) {
         val app = appContext
         status = Status(
             phase = phase,
@@ -611,6 +651,7 @@ internal object EmbeddedCarPlay {
             },
             videoActive = phase == Phase.CONNECTED && SCREEN_TYPE_MAIN in activeStreams,
             missing = missing,
+            resetWifiDirect = resetWifiDirect,
         )
         listeners.forEach { it(status) }
     }

@@ -17,4 +17,8 @@ internal object P2pOwnership {
                 ssid.removePrefix(prefix).matches(Regex("[A-Za-z0-9]{4}"))))
 }
 
-class P2pResetRequiredException : IOException("An existing Wi-Fi Direct connection needs a reset")
+/**
+ * Another Wi-Fi Direct connection holds the radio, such as screen mirroring to a TV: Android runs
+ * one at a time. [holder] is the device on its other end, when known.
+ */
+class P2pResetRequiredException(val holder: String? = null) : IOException("An existing Wi-Fi Direct connection needs a reset")

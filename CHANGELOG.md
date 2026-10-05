@@ -1,5 +1,9 @@
 # DiPlay 0.2.10 — 2026-10-03
 
+## RevvCarPlay 0.1.4
+
+- When another Wi-Fi Direct connection holds the radio, such as a phone left connected to a TV for screen mirroring, embedded CarPlay names the device on its other end instead of saying a previous connection "needs a reset", and tells the host it can be reset (STATE `resetWifiDirect`). The host's new RESET_WIFI_DIRECT (protocol version 4) ends it, waits until it's gone and connects. RevvCarPlay still never ends another app's connection by itself.
+
 ## RevvCarPlay 0.1.3
 
 - The connection service no longer crashes when Android refuses its microphone type. On Android 16 (seen on a Galaxy S23) a session started by Revv may not hold microphone or location in the background even with both permissions granted, so it carries on without them.

@@ -243,6 +243,12 @@ class CarPlayEmbedService : Service() {
             }
             CarPlayEmbedProtocol.MSG_SAVE_REPORT -> saveReport(client)
             CarPlayEmbedProtocol.MSG_HOTSPOT_ON -> HotspotSwitch.turnOn(this) { result -> hotspotTurned(client, result) }
+            CarPlayEmbedProtocol.MSG_RESET_WIFI_DIRECT -> {
+                Log.i(TAG, "$caller asked to end the other Wi-Fi Direct connection")
+                EmbeddedCarPlay.resetWifiDirect(this) { cleared ->
+                    if (!cleared) notice(client, getString(R.string.embed_wifi_direct_reset_failed), ok = false)
+                }
+            }
         }
     }
 
@@ -374,6 +380,7 @@ class CarPlayEmbedService : Service() {
             putString(KEY_HOTSPOT_MODE, status.hotspotMode)
             putBoolean(KEY_VIDEO_ACTIVE, status.videoActive)
             putStringArray(KEY_MISSING, status.missing.toTypedArray())
+            putBoolean(CarPlayEmbedProtocol.KEY_RESET_WIFI_DIRECT, status.resetWifiDirect)
         })
     }
 
@@ -430,7 +437,7 @@ class CarPlayEmbedService : Service() {
         val SETTINGS_MESSAGES = setOf(
             CarPlayEmbedProtocol.MSG_GET_SETTINGS, CarPlayEmbedProtocol.MSG_SET_SETTING, CarPlayEmbedProtocol.MSG_SET_HOTSPOT, CarPlayEmbedProtocol.MSG_SET_PHONE,
             CarPlayEmbedProtocol.MSG_IMPORT_IDENTITY, CarPlayEmbedProtocol.MSG_REMOVE_IDENTITY, CarPlayEmbedProtocol.MSG_SAVE_REPORT,
-            CarPlayEmbedProtocol.MSG_HOTSPOT_ON,
+            CarPlayEmbedProtocol.MSG_HOTSPOT_ON, CarPlayEmbedProtocol.MSG_RESET_WIFI_DIRECT,
         )
         // Android reports tethering started a moment before the hotspot reads as on.
         const val HOTSPOT_SETTLE_MILLIS = 2_000L

@@ -41,8 +41,9 @@ on every message. Constants live in `CarPlayEmbedProtocol`.
 | host → companion | `13` REMOVE_IDENTITY | — | End any session and remove the identity |
 | host → companion | `14` SAVE_REPORT | — | Save a diagnostic report to Downloads/Revv/CarPlay; NOTICE says where |
 | host → companion | `15` HOTSPOT_ON | — | Turn the head unit's Wi-Fi hotspot on now; NOTICE says if it could not |
+| host → companion | `16` RESET_WIFI_DIRECT | — | End the device's Wi-Fi Direct connection, whichever app made it (screen mirroring to a TV, say), then connect CarPlay (version 4). Send only when the driver asks, after STATE's `resetWifiDirect`; NOTICE says if it could not |
 | companion → host | `101` ATTACHED | `surfacePackage` (SurfacePackage), `version` (int) | Put the package into your SurfaceView |
-| companion → host | `102` STATE | `phase`, `detail`, `hotspotMode` (strings), `wireless`, `videoActive` (booleans), `missing` (string[]) | Status, sent on every change and once on attach |
+| companion → host | `102` STATE | `phase`, `detail`, `hotspotMode` (strings), `wireless`, `videoActive`, `resetWifiDirect` (booleans), `missing` (string[]) | Status, sent on every change and once on attach |
 | companion → host | `103` SETTINGS | `settings` (Bundle, below) | Every setting's value, on request and after each change |
 | companion → host | `104` NOTICE | `notice` (string), `ok` (boolean) | A line for the driver about an import, a hotspot save or a report |
 | companion → host | `105` GUIDANCE | `destination` (string), `routeMeters`, `arrival` (epoch s), `remainingSeconds` (longs), `maneuverType`, `maneuverMeters`, `drivingSide` (ints), `road` (string); numbers absent when unknown | CarPlay's route guidance (version 3), to a host signed like RevvCarPlay after GET_SETTINGS, then on every change. See below |
@@ -52,6 +53,9 @@ on every message. Constants live in `CarPlayEmbedProtocol`.
 `failed`. `detail` is a short human-readable line (localised to the companion's language).
 `videoActive` is true while the iPhone streams the main screen. With `setup_required`, `missing`
 lists `identity`, `vpn`, `wireless_permissions` and/or `hotspot` (car-hotspot mode without saved hotspot details).
+With `failed`, `resetWifiDirect` (version 4) means another Wi-Fi Direct connection holds the radio:
+Android runs one at a time, and the companion never ends someone else's by itself. `detail` names
+the device on its other end when known; offer the driver RESET_WIFI_DIRECT.
 
 The iPhone draws CarPlay at the view's pixel size (scaled by the companion's Resolution setting),
 so the picture fills the view without letterboxing. The host's window is above the embedded

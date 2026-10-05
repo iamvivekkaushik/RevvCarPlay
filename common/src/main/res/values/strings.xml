@@ -498,6 +498,10 @@
     <string name="embed_reconnecting">Reconnecting to the iPhone…</string>
     <string name="embed_could_not_start">CarPlay could not start. Open RevvCarPlay and check its permissions.</string>
     <string name="embed_idle">CarPlay is off</string>
+    <string name="embed_wifi_direct_in_use_by">Wi-Fi Direct is connected to %1$s, perhaps for screen mirroring. Android allows one Wi-Fi Direct connection at a time, so CarPlay can\'t start its own.</string>
+    <string name="embed_wifi_direct_in_use">Another Wi-Fi Direct connection, perhaps screen mirroring, is using Wi-Fi Direct. Android allows one at a time, so CarPlay can\'t start its own.</string>
+    <string name="embed_ending_wifi_direct">Ending the other Wi-Fi Direct connection…</string>
+    <string name="embed_wifi_direct_reset_failed">The other Wi-Fi Direct connection didn\'t end. Stop screen mirroring or disconnect the TV, then try again.</string>
     <string name="hotspot_switch_no_access">Allow Modify system settings for RevvCarPlay so it can turn the hotspot on, or turn it on in the head unit\'s settings.</string>
     <string name="hotspot_switch_unsupported">This head unit doesn\'t let RevvCarPlay turn its hotspot on. Turn it on in its settings.</string>
     <string name="hotspot_switch_failed">The head unit didn\'t turn its hotspot on. Turn it on in its settings.</string>

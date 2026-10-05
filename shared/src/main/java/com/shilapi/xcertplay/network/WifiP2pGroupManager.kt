@@ -122,7 +122,7 @@ class WifiP2pGroupManager(
             if (existing != null) {
                 if (!P2pOwnership.canReclaim(existing.isGroupOwner, existing.networkName,
                         ownership.getString("owned_ssid", null), ssidPrefix)) {
-                    throw P2pResetRequiredException()
+                    throw P2pResetRequiredException(holderOf(existing))
                 }
                 diagnostic("Wi-Fi P2P reclaiming retained owned group")
                 removeGroupBlocking(p2pChannel, existing.networkName)
@@ -143,8 +143,8 @@ class WifiP2pGroupManager(
                     synchronized(stateLock) { waitNanos(TimeUnit.MILLISECONDS.toNanos(500)) }
                     ensureStartActive(attempt)
                     checkPrerequisites(readStation())
-                    if (requestGroupInfo(attempt, p2pChannel, REQUEST_POLL_NANOS, requireResponse = true) != null) {
-                        throw P2pResetRequiredException()
+                    requestGroupInfo(attempt, p2pChannel, REQUEST_POLL_NANOS, requireResponse = true)?.let {
+                        throw P2pResetRequiredException(holderOf(it))
                     }
                 },
                 request = { selection ->
@@ -251,6 +251,12 @@ class WifiP2pGroupManager(
         }
         activeChannel?.close()
         activeThread?.quitSafely()
+    }
+
+    /** The device on the other end of someone else's group: its owner, or its one client. */
+    private fun holderOf(group: WifiP2pGroup): String? {
+        val other = if (group.isGroupOwner) group.clientList.singleOrNull() else group.owner
+        return other?.deviceName?.trim()?.takeIf { it.isNotEmpty() }
     }
 
     private fun createChannelListener(
