@@ -73,7 +73,10 @@ object HotspotSwitch {
                 "onTetheringFailed" -> {
                     val error = args?.firstOrNull() as? Int
                     Log.w(TAG, "hotspot refused, tethering error $error")
-                    reply(if (error == TETHER_ERROR_NO_CHANGE_TETHERING_PERMISSION) Result.NO_ACCESS else Result.FAILED)
+                    // "Modify system settings" was checked above, so a permission refusal here means the
+                    // carrier requires a tethering check, which only system apps may skip; asking the
+                    // driver for the setting again would not help.
+                    reply(if (error == TETHER_ERROR_NO_CHANGE_TETHERING_PERMISSION && !Settings.System.canWrite(context)) Result.NO_ACCESS else Result.FAILED)
                     null
                 }
                 "hashCode" -> System.identityHashCode(proxy)

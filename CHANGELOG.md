@@ -3,6 +3,7 @@
 ## RevvCarPlay 0.1.3
 
 - The connection service no longer crashes when Android refuses its microphone type. On Android 16 (seen on a Galaxy S23) a session started by Revv may not hold microphone or location in the background even with both permissions granted, so it carries on without them.
+- When the carrier requires a tethering check, which only system apps may skip, RevvCarPlay asks the driver to turn the hotspot on in the head unit's settings instead of asking for "Modify system settings" again.
 
 ## RevvCarPlay 0.1.2
 
